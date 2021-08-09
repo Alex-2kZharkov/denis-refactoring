@@ -1,9 +1,13 @@
 const webdriver = require("selenium-webdriver");
+const {AMAZON_WEB_DRIVER_ID} = require("../utils/constant");
+const {AMAZON_URL} = require("../utils/constant");
+const {pushToFireBase} = require("../utils/helpers");
 const {ScrapingStrategy} = require("./Scraping");
+const {LOCALHOST_ADDRESS} = require('../utils/constant')
 let {driver} = require('./configs/selenium')
 
 
-const AmazonScrapStrategy = function (searchString, matchCase, capabilities) {};
+const AmazonScrapStrategy = function (searchString, matchCase, capabilities) {}; // every strategy should have it's own place
 AmazonScrapStrategy.prototype = Object.create(ScrapingStrategy.prototype);
 AmazonScrapStrategy.prototype.scrap = async function (
     searchString,
@@ -11,12 +15,12 @@ AmazonScrapStrategy.prototype.scrap = async function (
     capabilities
 ) {
     driver = new webdriver.Builder()
-        .usingServer("http://192.168.1.108:4000/wd/hub")
+        .usingServer(LOCALHOST_ADDRESS)
         .withCapabilities(capabilities)
         .build();
-    await driver.get("https://www.amazon.com");
+    await driver.get(AMAZON_URL);
     const searchBox = await driver.findElement(
-        webdriver.By.id("twotabsearchtextbox")
+        webdriver.By.id(AMAZON_WEB_DRIVER_ID)
     );
     await searchBox.sendKeys(searchString, webdriver.Key.ENTER);
     const searchResults = await driver.findElements(
@@ -27,12 +31,12 @@ AmazonScrapStrategy.prototype.scrap = async function (
     const amazonArray = [];
     for (const searchResult of searchResults) {
         try {
-            const result = await searchResult.findElement(
+            const element = await searchResult.findElement(
                 webdriver.By.className(`a-link-normal a-text-normal`)
             );
 
-            const productName = (await result.getText()).toString();
-            const productLink = await result.getAttribute("href");
+            const productName = (await element.getText()).toString();
+            const productLink = await element.getAttribute("href");
             if (productName.toLowerCase().includes(matchCase)) {
                 amazonArray.push({
                     store: "Amazon",
