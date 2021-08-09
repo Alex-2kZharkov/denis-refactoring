@@ -6,6 +6,7 @@ const {
 } = require("./configs/capabilities");
 const uuid = require("uuid");
 const webdriver = require("selenium-webdriver");
+const {pushToFireBase} = require("./utils/helpers");
 const {db} = require('./configs/firebase');
 let {driver} = require('./configs/selenium')
 
@@ -135,8 +136,8 @@ EBayScrapStrategy.prototype.scrap = async function (
 };
 //#endregion
 
-var eBayScraper = new Scraper(new EBayScrapStrategy());
-var amazonScraper = new Scraper(new AmazonScrapStrategy());
+const eBayScraper = new Scraper(new EBayScrapStrategy());
+const amazonScraper = new Scraper(new AmazonScrapStrategy());
 
 
 
@@ -148,21 +149,10 @@ for (let i = 0; i < 10; i++) {
   } else if (i >= 5 && i < 10) {
     caps = capabilitiesFirefox;
   }
-  eBayScraper.start("Hp laptop", "pavilion", caps);
-  amazonScraper.start("Hp laptop", "pavilion", caps);
+  await eBayScraper.start("Hp laptop", "pavilion", caps);
+  await amazonScraper.start("Hp laptop", "pavilion", caps);
 }
 
 
 
-async function pushToFireBase(productsArray) {
-  const productsDb = db.collection("StoresToLaptops");
-  var coll;
-  for (const product of productsArray) {
-    coll = productsDb.doc(uuid.v1());
-    await coll.set({
-      Store: product.store,
-      Product: product.productName,
-      Link: product.productLink,
-    });
-  }
-}
+
